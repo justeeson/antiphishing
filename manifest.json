@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+
+  "name": "Anti Phishing",
+  "description": "This extension saves the user from phishing attempts",
+  "version": "1.0",
+  "background": { "scripts": ["main.js"] },
+  "browser_action": {
+	"default_title": "Anti Phishing Module"
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ]
+}
