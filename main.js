@@ -1,5 +1,6 @@
+
 chrome.browserAction.onClicked.addListener(function() { 
-  alert('Hello, World!'); 
+alert("Hello World!");
 });
 
 var mapOfLinks = new Map();
