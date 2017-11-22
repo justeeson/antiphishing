@@ -1,6 +1,21 @@
-chrome.browserAction.onClicked.addListener(function() { 
-  alert('Hello, World!'); 
-});
+
+chrome.browserAction.onClicked.addListener(
+  function (tab) {
+    /*// ...check the URL of the active tab against our pattern and...
+    if (urlRegex.test(tab.url)) {
+        // ...if it matches, send a message specifying a callback too
+        chrome.tabs.sendMessage(tab.id, {text: 'report_back'}, doStuffWithDom);
+    }*/
+
+    chrome.tabs.executeScript({ code: '(' + collectLinks + ')();'},
+      (results) => {
+        console.log('Popup script:');
+        console.log(results[0]);
+      }
+    );
+    
+ }
+);
 
 var mapOfLinks = new Map();
 
@@ -10,14 +25,17 @@ function collectLinks(){
 		var url = item.getAttribute("href");
 		
 		//if the href is just a pathname
-		if (url.charAt(0) == '/'){
+		if (url && url.charAt(0) == '/'){
 			//prepend the domain to the pathname
 			var length = window.location.hostname.length;
-			length = length - window.location.pathname.length; 
+			length = length - window.location.pathname.length;
 			url = window.location.hostname.substr(0, length) + url;
 		}
 		
-		mapOfLinks.set(url, {TEXT:item.text , THREAT:0});
+		
+		//Check for null links
+		if(url)
+		  mapOfLinks.set(url, {TEXT:item.text , THREAT:0});
 	}
 }
 
@@ -44,11 +62,21 @@ function checkLinks(){
 		}
 }
 
+function checkHTTPSConn(url)
+{
+  if(location.protocol === 'https:'){
+    //Then it is secure
+  } else {
+    //increment threat level
+    //mapOfLinks[url].THREAT += 1? not sure how to increment this
+  }
+}
+
 function changeURL()
 {
 	var linkList = document.getElementsByTagName("a");
 
-	for (i = 0; i < linkList.length; i++) {	
+	for (i = 0; i < linkList.length; i++) {
 		item = linkList[i];
 		var url = item.getAttribute("href");
 	}
@@ -64,11 +92,11 @@ function unshortenURL(url) {
 
 function make_get_request(url, xmlHttp)
 {
-    xmlHttp.onreadystatechange = function() { 
+    xmlHttp.onreadystatechange = function() {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
             callback(xmlHttp.responseText);
     };
-    xmlHttp.open("GET", url, true); // true for asynchronous 
+    xmlHttp.open("GET", url, true); // true for asynchronous
     xmlHttp.send();
 }
 
@@ -96,3 +124,4 @@ function highlightLinks(){
 		//}
 	}
 }
+
