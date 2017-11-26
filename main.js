@@ -7,7 +7,7 @@ chrome.browserAction.onClicked.addListener(
         chrome.tabs.sendMessage(tab.id, {text: 'report_back'}, doStuffWithDom);
     }*/
 
-    chrome.tabs.executeScript({ code: '(' + collectLinks + ')();'},
+    chrome.tabs.executeScript({ code: '(' + checkLinks + ')();'},
       (results) => {
         console.log('Popup script:');
         console.log(results[0]);
@@ -40,6 +40,13 @@ function collectLinks(){
 }
 
 function checkLinks(){
+    
+    //Difficultly retrieveing settings due to async. Example below.
+    var database = false
+    chrome.storage.local.get('UseDatabase', function(response){database = response; console.log(response);});
+    console.log(database)
+    
+    
 		for (var element of mapOfLinks) {
 		  /*
 			//check that link text matches domain, if not increment threat
@@ -125,4 +132,3 @@ function highlightLinks(){
 		//}
 	}
 }
-
