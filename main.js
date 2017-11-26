@@ -62,6 +62,7 @@ function checkLinks(){
 		}
 }
 
+//This only works for current tab I think
 function checkHTTPSConn(url)
 {
   if(location.protocol === 'https:'){

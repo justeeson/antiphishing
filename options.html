@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Anti-Phishing Options</title>
+  <style>
+    body: { padding: 10px; }
+  </style>
+</head>
+
+<body>
+  <div id = "header">
+    <h1> Anti-Phishing Options</h1>
+  </div>
+  <div id = "content">
+    <p>
+      <label>
+        Use database to cross reference for known phishing websites (Recommended)
+        <input type="checkbox" id="database">
+      </label>
+    </p>
+    <p>
+      <label>
+        Ensure Current tab is secure (https://)
+        <input type="checkbox" id="secure">
+      </label>
+    </p>
+    <p>
+      <label>
+        Highlight links which are potential phishing links
+        <input type="checkbox" id="highlight">
+      </label>
+    </p>
+    <p>
+      <label>
+        Check for foriegn characters in links
+        <input type="checkbox" id="foriegn">
+      </label>
+    </p>
+  </div>
+  <div id="status"></div>
+  <button id="save">Save</button>
+
+  <script src="options.js"></script>
+</body>
+</html>
