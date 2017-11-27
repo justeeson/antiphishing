@@ -34,9 +34,11 @@ chrome.runtime.onMessage.addListener(
 
 
 function checkDataBase(url){
+   /*If you want to phishtank to check for you
   var phishTankURL = 'http://checkurl.phishtank.com/checkurl/';
   var phishTankKey = '0721d56cc2db3b2564ff700fa375d1c8f33875b6a12431410969c612d12c714a';
-  //var textXML = 'https://www.w3schools.com/xml/books.xml';
+  //var testXML = 'https://www.w3schools.com/xml/books.xml';
+  */
   
   var http = new XMLHttpRequest();
   
@@ -54,13 +56,20 @@ function checkDataBase(url){
   http.onreadystatechange = function() {//Call a function when the state changes.
       if(http.readyState == 4 && http.status == 200) {
         //alert('ere');
+          //parse the xml file
           var parser = new DOMParser();
           var doc = parser.parseFromString(this.responseText, "text/xml");
+          
+          //get all the url elements
+          //XML file only contains active phishes so no checks for validity are necessary
           var validURLList =doc.getElementsByTagName('url');
           
+          //search url elements
           for(i = 0; i < validURLList.length; i++){
             var xmlURL = validURLList[i].childNodes[0].nodeValue;
+            //alert if the link is phish for debugging
             if(xmlURL == url){
+              
               alert(xmlURL + ' found at index: ' + i);
             }
           }
@@ -74,7 +83,8 @@ function checkDataBase(url){
   //http.send(params);
 }
 
-checkDataBase('http://paypal.co.uk.userjcgw75avdau.gospite.com/acc1/sd/?em=&amp;ses=cc0396621d252f2dbd34ae5ddc0a3a2a');
+//example for the db
+//checkDataBase('http://paypal.co.uk.userjcgw75avdau.gospite.com/acc1/sd/?em=&amp;ses=cc0396621d252f2dbd34ae5ddc0a3a2a');
 
 
 

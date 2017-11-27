@@ -1,4 +1,5 @@
-function printLinksOnPage(){
+//does not work asynchronously
+/*function printLinksOnPage(){
   var linkList = document.getElementsByTagName("a");
   var str = 'Links On Page: \n';
   for (i = 20; i < 27; i++){
@@ -6,15 +7,18 @@ function printLinksOnPage(){
   }
   //alert(str);
 }
+*/
 
+//resolve urls to the final redirected destination
 function replaceUrls(){
   var linkList = document.getElementsByTagName("a");
   
+  //limited looping for testing
 	for (i = 20; i < 27/*linkList.length*/; i++) {
 	  item = linkList[i];
 	  
+	  //make url parsable
 		var url = item.getAttribute("href");
-		
 	  var parser = document.createElement('a');
     parser.href = url;
     
@@ -31,19 +35,29 @@ function replaceUrls(){
       url = 'http://' + url;
     }
   
-    //alert('feoaefae: ' + url);
     //send the url to main.js to be resolved
     chrome.runtime.sendMessage({greeting: 'Find Redirects', url: url, index: i});
   
     //var innerHTML_ = item.innerHTML;
 		//item.innerHTML = "<span style=\"background-color: #FFFF00\">" + innerHTML_ + "</span>";
 	} 
-	var str = 'ereraea: \n';
   
   var count = 20;
   function foo(request, sender, sendResponse) {
     if(request.greeting == 'Final URL Dest'){
+      var x = linkList[request.index].getAttribute('href');
       linkList[request.index].setAttribute('href', request.data);
+      
+      /*
+       *Uncomment this to see the it resolve extended or shortened urls
+       *https://blog.bufferapp.com/url-shorteners is a good website for demo
+       *alert('index: ' + request.index + '    before: ' + x + '    after: ' + linkList[request.index].getAttribute('href') + '\n');
+       */
+      
+      //alert here gives correct information but only in this scope because of asynchronous messaging
+      
+      //I recommend that we do the link safety checks here since we cannot guarantee order of execution
+      
       //alert('index: ' + request.index + '    link: ' + linkList[request.index].getAttribute('href') + '\n');
       
       count++;
