@@ -1,6 +1,79 @@
-chrome.browserAction.onClicked.addListener(function() { 
-  alert('Hello, World!'); 
-});
+
+//Listens for a url from content.js to be be resolved
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    var count = 0;
+    if(request.greeting == 'Find Redirects'){
+      //alert('finding redirects');
+      var xhr = new XMLHttpRequest();
+    
+      xhr.open('GET', request.url, true);
+    	
+    	
+      xhr.onload = function () {
+        finalURL = this.responseURL.toString();
+        
+                //parse url to http(s)://hostname/pathname
+        var parser = document.createElement('a');
+        parser.href = finalURL;
+        finalURL = parser.protocol + '//' + parser.hostname + parser.pathname;
+        
+        //send the Final URL Dest back to the the correct tab with the index of the url in linkList
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          
+          chrome.tabs.sendMessage(sender.tab.id, {greeting: "Final URL Dest", data: finalURL, index: request.index}, function(response) {
+            //
+          });
+        });
+       
+      };
+      
+      xhr.send(null);
+    }
+  });
+
+
+function checkDataBase(url){
+  var phishTankURL = 'http://checkurl.phishtank.com/checkurl/';
+  var phishTankKey = '0721d56cc2db3b2564ff700fa375d1c8f33875b6a12431410969c612d12c714a';
+  //var textXML = 'https://www.w3schools.com/xml/books.xml';
+  
+  var http = new XMLHttpRequest();
+  
+  
+  var params = 'url=' + url + '&format=xml&app_key=' + phishTankKey;
+  //http.open("POST", phishTankURL, true);
+  http.open('GET', './verified_online.xml', true);
+  
+  //Send the proper header information along with the request
+  http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  
+  http.onreadystatechange = function() {//Call a function when the state changes.
+      if(http.readyState == 4 && http.status == 200) {
+        //alert('ere');
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(this.responseText, "text/xml");
+          var validURLList =doc.getElementsByTagName('url');
+          
+          for(i = 0; i < validURLList.length; i++){
+            var xmlURL = validURLList[i].childNodes[0].nodeValue;
+            if(xmlURL == url){
+              alert(xmlURL + ' found at index: ' + i);
+            }
+          }
+          //alert(doc.getElementsByTagName('url')[0].childNodes[0].nodeValue);
+          
+      }
+  };
+  http.send(params);
+}
+
+checkDataBase('http://paypal.co.uk.userjcgw75avdau.gospite.com/acc1/sd/?em=&amp;ses=cc0396621d252f2dbd34ae5ddc0a3a2a');
+
+
+
+
+
 
 var mapOfLinks = new Map();
 
@@ -44,37 +117,9 @@ function checkLinks(){
 		}
 }
 
-function changeURL()
-{
-	var linkList = document.getElementsByTagName("a");
-
-	for (i = 0; i < linkList.length; i++) {	
-		item = linkList[i];
-		var url = item.getAttribute("href");
-	}
-}
-
-
-function unshortenURL(url) {
-	var xmlHttp = new XMLHttpRequest();
-	make_get_request(url, xmlHttp);
-	
-	url = xmlHttp.responseURL;
-}
-
-function make_get_request(url, xmlHttp)
-{
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
-    };
-    xmlHttp.open("GET", url, true); // true for asynchronous 
-    xmlHttp.send();
-}
-
 //WORKS FOR TEXT
-function highlightLinks(){
-	var linkList = document.getElementsByTagName("a");
+function highlightLinks(linkList){
+	//var linkList = document.getElementsByTagName("a");
 
 	for (i = 0; i < linkList.length; i++) {
 		item = linkList[i];
