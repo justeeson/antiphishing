@@ -40,9 +40,12 @@ function checkDataBase(url){
   
   var http = new XMLHttpRequest();
   
-  
+  /*If you want to phishtank to check for you
   var params = 'url=' + url + '&format=xml&app_key=' + phishTankKey;
-  //http.open("POST", phishTankURL, true);
+  http.open("POST", phishTankURL, true);
+  */
+  
+  //search local xml file downloaded from phishtank.com
   http.open('GET', './verified_online.xml', true);
   
   //Send the proper header information along with the request
@@ -65,7 +68,10 @@ function checkDataBase(url){
           
       }
   };
-  http.send(params);
+  http.send();
+  
+  //if you want to phishtank to check for you
+  //http.send(params);
 }
 
 checkDataBase('http://paypal.co.uk.userjcgw75avdau.gospite.com/acc1/sd/?em=&amp;ses=cc0396621d252f2dbd34ae5ddc0a3a2a');
