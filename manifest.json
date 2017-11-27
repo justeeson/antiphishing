@@ -4,12 +4,28 @@
   "name": "Anti Phishing",
   "description": "This extension saves the user from phishing attempts",
   "version": "1.0",
-  "background": { "scripts": ["main.js"] },
-  "browser_action": {
-	"default_title": "Anti Phishing Module"
+  
+  
+  "background": { 
+    "persistent": false,
+    "scripts": ["main.js"] 
   },
+  
+  "content_scripts": [
+    {
+      "run_at" :"document_end",
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  
+  "browser_action": {
+  	"default_title": "Anti Phishing Module"
+  },
+  
   "permissions": [
     "activeTab",
+    "tabs",
     "storage"
   ]
 }
