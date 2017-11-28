@@ -1,12 +1,23 @@
+function click(e) {
+  chrome.tabs.executeScript(null,
+      {code:"document.body.style.backgroundColor='" + e.target.id + "'"});
+  window.close();
+}
 
-chrome.browserAction.onClicked.addListener(
-  function (tab) {
+document.addEventListener('DOMContentLoaded', function () {
+  var divs = document.querySelectorAll('div');
+  for (var i = 0; i < divs.length; i++) {
+    divs[i].addEventListener('click', click);
+  }
+});
+//chrome.browserAction.onClicked.addListener(
+  //function (tab) {
     /*// ...check the URL of the active tab against our pattern and...
     if (urlRegex.test(tab.url)) {
         // ...if it matches, send a message specifying a callback too
         chrome.tabs.sendMessage(tab.id, {text: 'report_back'}, doStuffWithDom);
     }*/
-
+/*
     chrome.tabs.executeScript({ code: '(' + checkLinks + ')();'},
       (results) => {
         console.log('Popup script:');
@@ -16,7 +27,7 @@ chrome.browserAction.onClicked.addListener(
     
  }
 );
-
+*/
 var mapOfLinks = new Map();
 
 function collectLinks(){
