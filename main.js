@@ -2,26 +2,25 @@
 //Listens for a url from content.js to be be resolved
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    var count = 0;
     if(request.greeting == 'Find Redirects'){
-      //alert('finding redirects');
       var xhr = new XMLHttpRequest();
     
       xhr.open('GET', request.url, true);
     	
     	
       xhr.onload = function () {
-        finalURL = this.responseURL.toString();
-        
+        var finalURL = this.responseURL.toString();
                 //parse url to http(s)://hostname/pathname
         var parser = document.createElement('a');
         parser.href = finalURL;
-        finalURL = parser.protocol + '//' + parser.hostname + parser.pathname;
+        finalURL = parser.href;
+        
+        //finalURL = parser.protocol + '//' + parser.hostname + parser.pathname;
         
         //send the Final URL Dest back to the the correct tab with the index of the url in linkList
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
           
-          chrome.tabs.sendMessage(sender.tab.id, {greeting: "Final URL Dest", data: finalURL, index: request.index}, function(response) {
+          chrome.tabs.sendMessage(sender.tab.id, {greeting: "Final URL Dest", data: finalURL, index: request.index, safe: !checkDataBase(finalURL, request.index)}, function(response) {
             //
           });
         });
@@ -33,8 +32,8 @@ chrome.runtime.onMessage.addListener(
   });
 
 
-function checkDataBase(url){
-   /*If you want to phishtank to check for you
+function checkDataBase(url, index){
+  /*If you want to phishtank to check for you
   var phishTankURL = 'http://checkurl.phishtank.com/checkurl/';
   var phishTankKey = '0721d56cc2db3b2564ff700fa375d1c8f33875b6a12431410969c612d12c714a';
   //var testXML = 'https://www.w3schools.com/xml/books.xml';
@@ -48,37 +47,50 @@ function checkDataBase(url){
   */
   
   //search local xml file downloaded from phishtank.com
-  http.open('GET', './verified_online.xml', true);
+  http.open('GET', './test.xml', true);
   
   //Send the proper header information along with the request
   http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  
-  http.onreadystatechange = function() {//Call a function when the state changes.
+  var returnVal;
+  http.onreadystatechange = function() {
       if(http.readyState == 4 && http.status == 200) {
-        //alert('ere');
           //parse the xml file
           var parser = new DOMParser();
           var doc = parser.parseFromString(this.responseText, "text/xml");
           
           //get all the url elements
           //XML file only contains active phishes so no checks for validity are necessary
-          var validURLList =doc.getElementsByTagName('url');
+          var validURLList = doc.getElementsByTagName('url');
           
           //search url elements
           for(i = 0; i < validURLList.length; i++){
             var xmlURL = validURLList[i].childNodes[0].nodeValue;
-            //alert if the link is phish for debugging
-            if(xmlURL == url){
-              
-              alert(xmlURL + ' found at index: ' + i);
+            var p = document.createElement('a');
+            var q = document.createElement('a');
+            p.href = xmlURL;
+            q.href = url;
+            p.href = p.hostname + p.pathname;
+            q.href = q.hostname + q.pathname;
+            //alert('p: ' + p.href + '\nq: ' + q.href);
+            
+            //xmlURL = p.protocol + '//' + p.hostname + p.pathname;
+        
+            //alert('xmlUrl: ' + xmlURL + '\nurl:  ' + url);
+            //Bad link if whole url matches or hostname / pathname are a match
+            if(xmlURL == url || ( p.href == q.href)){
+              //When bad database test link if found display its index in the list of a elements
+              alert(p.href + ' found at index: ' + index);
+              returnVal = true;
             }
           }
+          returnVal =  false;
           //alert(doc.getElementsByTagName('url')[0].childNodes[0].nodeValue);
           
       }
+     
   };
   http.send();
-  
+  return true;
   //if you want to phishtank to check for you
   //http.send(params);
 }
