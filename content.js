@@ -1,47 +1,125 @@
+function getColor(threat){
+  if(threat == 1){
+    return 'FFFF00';
+  }
+  else if(threat == 2){
+    return 'FFA533';
+  }  
+  else if(threat >= 3){
+    return 'FF3333';
+  }  
+}
+
 //resolve urls to the final redirected destination
-function replaceUrls(){
+function processURLs(){
   
-  //Initialize listener
-  function foo(request, sender, sendResponse) {
+  //URL processor for listener to call upon received message
+  function processURLThreatLevel(request, sender, sendResponse) {
+    //We are getting a redirected URL
+    
+    
     if(request.greeting == 'Final URL Dest'){
+      //to be used to assess threats
+      var strTitle = '';
+      var threat = 0;
+      var ascii = /^[ -~]+$/;
+      var innerHTML_;
       //have a new attribute with the final dest after redirects
+      //allows us to retain original link
       linkList[request.index].setAttribute('redirectLink', request.data);
       
-      var disallowed = /[^a-z0-9_.,-]/i;
-      if (disallowed.test( decodeURI(request.data))){
-         alert("URL contains non-ASCII character! index: " + request.index);
-      }
-      var innerHTML_ = linkList[request.index].innerHTML;
-      var strTitle = '\n';
-      //highlight unsafe links
+      //Flag blacklisted site
       if(!request.safe){
-        strTitle = strTitle + 'Warning: BlackListed Link';
-        //linkList[request.index].setAttribute('title', 'Warning: BlackListed Link');
-	  	  linkList[request.index].innerHTML = "<span style=\"background-color: #FFFF00\">" + innerHTML_ + "</span>";
+        strTitle = strTitle + '\nWarning: BlackListed Link';
+        threat += 3;
+      }
+    
+      //Flag foreign (unusable ASCII) characters
+      if (!ascii.test( decodeURI(request.data))){
+         strTitle = strTitle + '\nWarning: Foreign Characters Detected';
+         threat += 2;
+         
       }
       
+      //Flag unsecure link
+      if(request.protocol != 'https:'){
+        strTitle = strTitle + '\nWarning: Unsecured Link';
+        threat += 1;
+      }
+      
+      //modify title of link to report the threat
       strTitle = linkList[request.index].getAttribute('href') + strTitle;
-      
       linkList[request.index].setAttribute('title', strTitle);
-      //I recommend that we do the link safety checks here since we cannot guarantee order of execution
       
-      //alert('index: ' + request.index + '    link: ' + linkList[request.index].getAttribute('href') + '\nisSafe: ' + request.safe + '\n');
-          
+      //highlight according to threat
+      innerHTML_ = linkList[request.index].innerHTML;
+      if(threat > 0){
+        var color = getColor(threat);
+        linkList[request.index].innerHTML = "<span style=\"background-color: #" + color +"\">" + innerHTML_ + "</span>";
+      }
+      
+    }
+    else if(request.greeting == 'Final IMG Dest'){
+      var strTitleI = '';
+      var threatI = 0;
+      var asciiI = /^[ -~]+$/;
+      var innerHTML_I;
+      //have a new attribute with the final dest after redirects
+      //allows us to retain original link
+      if(imgList[request.index]){
+        imgList[request.index].setAttribute('redirectLink', request.data);
+      }
+      
+      //Flag blacklisted site
+      if(!request.safe){
+        strTitleI = strTitleI + '\nWarning: BlackListed Link';
+        threatI += 3;
+      }
+    
+      //alert(request.data);
+      //Flag foreign (unusable ASCII) characters
+      if (!asciiI.test( decodeURI(request.data))){
+        
+         strTitleI = strTitleI + '\nWarning: Foreign Characters Detected';
+         threatI += 2;
+         //alert('foreign image, threat: ' + threatI); 
+      }
+      
+      //Flag unsecure link
+      if(request.protocol != 'https:'){
+        strTitleI = strTitleI + '\nWarning: Unsecured Link';
+        threatI += 1;
+      }
+      
+      //modify title of link to report the threat
+      strTitleI = imgList[request.index].getAttribute('src') + strTitleI;
+      imgList[request.index].setAttribute('title', strTitleI);
+      
+      //highlight according to threat
+      innerHTML_I = imgList[request.index].innerHTML;
+      if(threatI > 0){
+        var badLinkReplacement = "https://s3.minijuegosgratis.com/media/video-collection-img/video-collection-trollface-thumb.jpg?v=_1510313260";
+		    imgList[request.index].setAttribute('src', badLinkReplacement);
+      }
+      
     }
   }
   
-  chrome.runtime.onMessage.addListener(foo);
+  //begin listening
+  chrome.runtime.onMessage.addListener(processURLThreatLevel);
   
+  //to be used to parse the links
+  var url;
+	var parser;
+	
   //collect links
   var linkList = document.getElementsByTagName("a");
   //limited looping for testing
 	for (i = 0; i < linkList.length; i++) {
 	  item = linkList[i];
-  	  //alert(i + '   '  + linkList[i]);
 	  
 	  //make url parsable
-		var url;
-		var parser;
+		
 		if(item){
   		if (item.getAttribute('href')){
   		  
@@ -53,39 +131,35 @@ function replaceUrls(){
   		}
 		}
     
-	  //alert('parser: ' + parser.href + '\n\nurl:    ' + url + '\n\nequal: ' + b);
 	  //send the url to main.js to be resolved
 	  chrome.runtime.sendMessage({greeting: 'Find Redirects', url: url, index: i});
   }
+  
+  //collect links
+  var imgList = document.getElementsByTagName("img");
+  //limited looping for testing
+	for (j = 0; j < imgList.length; j++) {
+	  item = imgList[j];
+	  
+	  //make url parsable
+		if(item){
+  		if (item.getAttribute('src')){
+  		  
+    		url = item.getAttribute('src');
+    		console.log('index: ' + j + '   IMG: ' + url);
+    	  parser = document.createElement('a');
+        parser.href = url;
+        url = parser.href;
+  		}
+		}
+    
+	  //send the url to main.js to be resolved
+	  chrome.runtime.sendMessage({greeting: 'Find Image Redirects', url: url, index: j});
+  }
 }
 
-//WORKS FOR TEXT
-function highlightLinks(linkList){
-	//var linkList = document.getElementsByTagName("a");
 
-	for (i = 0; i < linkList.length; i++) {
-		item = linkList[i];
-		var url = item.getAttribute("href");
-				
-		//change item.text to be highlighted based on the THREAT level right now its just yellow
-		var innerHTML_ = item.innerHTML;
-		item.innerHTML = "<span style=\"background-color: #FFFF00\">" + innerHTML_ + "</span>";
-	}
-	
-	var imgList = document.getElementsByTagName("img");
-	for (i = 0; i < imgList.length; i++) {
-		item = imgList[i];
-		var badLinkReplacement = "https://s3.minijuegosgratis.com/media/video-collection-img/video-collection-trollface-thumb.jpg?v=_1510313260";
-		
-		//needs to compare against DB for whole and shortened link
-		//if (item.getAttribute("src") == BAD_LINK){
-			item.setAttribute("src", badLinkReplacement);
-		//}
-	}
-}
 
-/*window.onload = function() {
-    //replaceUrls();
-};*/
-
-//window.addEventListener("load", replaceUrls);
+window.onload = function() {
+    //processURLs();
+};

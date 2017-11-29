@@ -1,28 +1,30 @@
 //Listens for a url from content.js to be be resolved
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    if(request.greeting == 'Find Redirects'){
-      var xhr = new XMLHttpRequest();
+    var xhr = new XMLHttpRequest();
     
-      xhr.open('GET', request.url, true);
-    	
-    	
-      xhr.onload = function () {
-        var finalURL = this.responseURL.toString();
-                //parse url to http(s)://hostname/pathname
-        var parser = document.createElement('a');
-        parser.href = finalURL;
-        //finalURL = parser.href;
-        
-        checkDataBase(finalURL, request.index, sender.tab.id);
-       
-      };
+    xhr.open('GET', request.url, true);
+  	
+    xhr.onload = function () {
+      var finalURL = this.responseURL.toString();
+              //parse url to http(s)://hostname/pathname
+      var parser = document.createElement('a');
+      parser.href = finalURL;
+      finalURL = parser.href;
       
-      xhr.send(null);
-    }
+      if(request.greeting == 'Find Redirects'){
+        checkDataBase(finalURL, request.index, sender.tab.id, true);
+      }
+      else if(request.greeting == 'Find Image Redirects'){
+        checkDataBase(finalURL, request.index, sender.tab.id, false);
+      }
+     
+    };
+    
+    xhr.send(null);
   });
 
-function checkDataBase(url, index, tab){
+function checkDataBase(url, index, tab, isHREF){
   /*If you want to phishtank to check for you
   var phishTankURL = 'http://checkurl.phishtank.com/checkurl/';
   var phishTankKey = '0721d56cc2db3b2564ff700fa375d1c8f33875b6a12431410969c612d12c714a';
@@ -60,24 +62,13 @@ function checkDataBase(url, index, tab){
             var q = document.createElement('a');
             p.href = xmlURL;
             q.href = url;
-            //p.href = p.hostname + p.pathname;
-            //q.href = q.hostname + q.pathname;
-            //alert('p: ' + p.href + '\nq: ' + q.href);
             
         
-            //alert('xmlUrl: ' + xmlURL + '\nurl:  ' + url);
             //Bad link if whole url matches or hostname / pathname are a match
             if(p.pathname == '/'){
               if(xmlURL == url || ( p.hostname == q.hostname)){
                 //Identify the link as unsafe
                 isSafeLink = false;
-                alert(
-                  'found at index: ' + index + '\n\n' +
-            		  'url: ' + url + '\n\n' +
-            		  'xmlURL: ' + xmlURL + '\n\n' +
-            		  'p.href: ' + p.href + '\n\n' +
-            		  'q.href '  + q.href 
-            		  );
                 
                 //exit the for loop and send message back to content.js
                 i = validURLList.length;
@@ -87,13 +78,6 @@ function checkDataBase(url, index, tab){
               if(xmlURL == url || ( (p.hostname + p.pathname) == (q.hostname + q.pathname))){
                 //Identify the link as unsafe
                 isSafeLink = false;
-                alert(
-                  'found at index: ' + index + '\n\n' +
-            		  'url: ' + url + '\n\n' +
-            		  'xmlURL: ' + xmlURL + '\n\n' +
-            		  'p.href: ' + p.href + '\n\n' +
-            		  'q.href '  + q.href 
-            		  );
                 
                 //exit the for loop and send message back to content.js
                 i = validURLList.length;
@@ -101,12 +85,23 @@ function checkDataBase(url, index, tab){
             }
           }
           
-          //send message back to the page with the url, index in the page, and status in the database 
-          chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            chrome.tabs.sendMessage(tab, {greeting: "Final URL Dest", data: url, index: index, safe: isSafeLink}, function(response) {
-              //
+          if(isHREF){
+            //send message back to the page with the url, index in the page, and status in the database 
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+              chrome.tabs.sendMessage(tab, {greeting: "Final URL Dest", data: url, index: index, safe: isSafeLink, protocol: q.protocol}, function(response) {
+                //
+              });
             });
-          });
+          }
+          else{
+            //send message back to the page with the url, index in the page, and status in the database 
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+              alert(url);
+              chrome.tabs.sendMessage(tab, {greeting: "Final IMG Dest", data: url, index: index, safe: isSafeLink, protocol: q.protocol}, function(response) {
+                //
+              });
+            });
+          }
           
       }
      
@@ -114,54 +109,6 @@ function checkDataBase(url, index, tab){
   http.send();
   //if you want to phishtank to check for you
   //http.send(params);
-}
-
-
-
-
-
-
-
-var mapOfLinks = new Map();
-
-function collectLinks(){
-  var links = document.getElementsByTagName("a");
-  for (var item of links) {
-		var url = item.getAttribute("href");
-		
-		//if the href is just a pathname
-		if (url.charAt(0) == '/'){
-			//prepend the domain to the pathname
-			var length = window.location.hostname.length;
-			length = length - window.location.pathname.length; 
-			url = window.location.hostname.substr(0, length) + url;
-		}
-		
-		mapOfLinks.set(url, {TEXT:item.text , THREAT:0});
-	}
-}
-
-function checkLinks(){
-		for (var element of mapOfLinks) {
-		  /*
-			//check that link text matches domain, if not increment threat
-			function checkDomainMatch(List list){
-				
-			}
-			//check that link text does not have foreign chars, if not increment threat
-			checkForForeignCharacters(List list){
-				
-			}
-			//check that link text isn’t in a database, if not increment threat
-			checkAgainstDatabase(List list){
-				
-			}
-			//check that link has https available if not increment threat
-			checkHTTPSConn(List list){
-				
-			}
-			*/
-		}
 }
 
 //WORKS FOR TEXT
