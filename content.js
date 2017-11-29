@@ -48,7 +48,7 @@ function processURLs(){
       }
       
       //modify title of link to report the threat
-      strTitle = linkList[request.index].getAttribute('href') + strTitle;
+      strTitle = linkList[request.index].getAttribute('href') + '\nRedirects to: ' + linkList[request.index].getAttribute('redirectLink') + strTitle;
       linkList[request.index].setAttribute('title', strTitle);
       
       //highlight according to threat
@@ -79,7 +79,7 @@ function processURLs(){
       //alert(request.data);
       //Flag foreign (unusable ASCII) characters
       if (!asciiI.test( decodeURI(request.data))){
-        
+         
          strTitleI = strTitleI + '\nWarning: Foreign Characters Detected';
          threatI += 2;
          //alert('foreign image, threat: ' + threatI); 
@@ -92,7 +92,7 @@ function processURLs(){
       }
       
       //modify title of link to report the threat
-      strTitleI = imgList[request.index].getAttribute('src') + strTitleI;
+      strTitleI = imgList[request.index].getAttribute('src')  + '\nRedirects to: ' + imgList[request.index].getAttribute('redirectLink') + strTitleI;
       imgList[request.index].setAttribute('title', strTitleI);
       
       //highlight according to threat

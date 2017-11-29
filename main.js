@@ -1,4 +1,4 @@
-initializeDefaultValues();
+  initializeDefaultValues();
 
 function initializeDefaultValues() {
     if (localStorage.getItem('default_values_initialized')) {
@@ -134,11 +134,11 @@ chrome.browserAction.onClicked.addListener(
   function(){
     if(localStorage.getItem('on') == 'true'){
       localStorage.setItem('on', 'false');
-      alert('I\'m so turned off right now.....');
+      alert('Getting phished is such a TURN OFF');
     }
     else{
       localStorage.setItem('on', 'true');
-      alert('I\'m so turned on (;');
+      alert('Secure browsing has me TURNED ON :P');
     }
     
     
