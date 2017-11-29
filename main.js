@@ -1,4 +1,3 @@
-
 //Listens for a url from content.js to be be resolved
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
@@ -13,17 +12,9 @@ chrome.runtime.onMessage.addListener(
                 //parse url to http(s)://hostname/pathname
         var parser = document.createElement('a');
         parser.href = finalURL;
-        finalURL = parser.href;
+        //finalURL = parser.href;
         
-        //finalURL = parser.protocol + '//' + parser.hostname + parser.pathname;
-        
-        //send the Final URL Dest back to the the correct tab with the index of the url in linkList
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-          
-          chrome.tabs.sendMessage(sender.tab.id, {greeting: "Final URL Dest", data: finalURL, index: request.index, safe: !checkDataBase(finalURL, request.index)}, function(response) {
-            //
-          });
-        });
+        checkDataBase(finalURL, request.index, sender.tab.id);
        
       };
       
@@ -31,8 +22,7 @@ chrome.runtime.onMessage.addListener(
     }
   });
 
-
-function checkDataBase(url, index){
+function checkDataBase(url, index, tab){
   /*If you want to phishtank to check for you
   var phishTankURL = 'http://checkurl.phishtank.com/checkurl/';
   var phishTankKey = '0721d56cc2db3b2564ff700fa375d1c8f33875b6a12431410969c612d12c714a';
@@ -51,52 +41,81 @@ function checkDataBase(url, index){
   
   //Send the proper header information along with the request
   http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  var returnVal;
+  
   http.onreadystatechange = function() {
       if(http.readyState == 4 && http.status == 200) {
           //parse the xml file
           var parser = new DOMParser();
           var doc = parser.parseFromString(this.responseText, "text/xml");
-          
+          var isSafeLink = true;
           //get all the url elements
           //XML file only contains active phishes so no checks for validity are necessary
           var validURLList = doc.getElementsByTagName('url');
           
-          //search url elements
+          //For each badURL in our database
           for(i = 0; i < validURLList.length; i++){
+            //Parse url into host+path
             var xmlURL = validURLList[i].childNodes[0].nodeValue;
             var p = document.createElement('a');
             var q = document.createElement('a');
             p.href = xmlURL;
             q.href = url;
-            p.href = p.hostname + p.pathname;
-            q.href = q.hostname + q.pathname;
+            //p.href = p.hostname + p.pathname;
+            //q.href = q.hostname + q.pathname;
             //alert('p: ' + p.href + '\nq: ' + q.href);
             
-            //xmlURL = p.protocol + '//' + p.hostname + p.pathname;
         
             //alert('xmlUrl: ' + xmlURL + '\nurl:  ' + url);
             //Bad link if whole url matches or hostname / pathname are a match
-            if(xmlURL == url || ( p.href == q.href)){
-              //When bad database test link if found display its index in the list of a elements
-              alert(p.href + ' found at index: ' + index);
-              returnVal = true;
+            if(p.pathname == '/'){
+              if(xmlURL == url || ( p.hostname == q.hostname)){
+                //Identify the link as unsafe
+                isSafeLink = false;
+                alert(
+                  'found at index: ' + index + '\n\n' +
+            		  'url: ' + url + '\n\n' +
+            		  'xmlURL: ' + xmlURL + '\n\n' +
+            		  'p.href: ' + p.href + '\n\n' +
+            		  'q.href '  + q.href 
+            		  );
+                
+                //exit the for loop and send message back to content.js
+                i = validURLList.length;
+              }
+            }
+            else {
+              if(xmlURL == url || ( (p.hostname + p.pathname) == (q.hostname + q.pathname))){
+                //Identify the link as unsafe
+                isSafeLink = false;
+                alert(
+                  'found at index: ' + index + '\n\n' +
+            		  'url: ' + url + '\n\n' +
+            		  'xmlURL: ' + xmlURL + '\n\n' +
+            		  'p.href: ' + p.href + '\n\n' +
+            		  'q.href '  + q.href 
+            		  );
+                
+                //exit the for loop and send message back to content.js
+                i = validURLList.length;
+              }
             }
           }
-          returnVal =  false;
-          //alert(doc.getElementsByTagName('url')[0].childNodes[0].nodeValue);
+          
+          //send message back to the page with the url, index in the page, and status in the database 
+          chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.sendMessage(tab, {greeting: "Final URL Dest", data: url, index: index, safe: isSafeLink}, function(response) {
+              //
+            });
+          });
           
       }
      
   };
   http.send();
-  return true;
   //if you want to phishtank to check for you
   //http.send(params);
 }
 
-//example for the db
-//checkDataBase('http://paypal.co.uk.userjcgw75avdau.gospite.com/acc1/sd/?em=&amp;ses=cc0396621d252f2dbd34ae5ddc0a3a2a');
 
 
 
