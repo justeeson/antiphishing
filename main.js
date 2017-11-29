@@ -1,3 +1,16 @@
+initializeDefaultValues();
+
+function initializeDefaultValues() {
+    if (localStorage.getItem('default_values_initialized')) {
+        return;
+    }
+    
+    // set default values for your variable here
+    localStorage.setItem('on', 'true');
+    alert(localStorage.getItem('on'));
+    localStorage.setItem('default_values_initialized', true);
+}
+
 //Listens for a url from content.js to be be resolved
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
@@ -66,7 +79,7 @@ function checkDataBase(url, index, tab, isHREF){
         
             //Bad link if whole url matches or hostname / pathname are a match
             if(p.pathname == '/'){
-              if(xmlURL == url || ( p.hostname == q.hostname)){
+              if(xmlURL == url || ( p.hostname == q.hostname) || q.href.includes(p.href)){
                 //Identify the link as unsafe
                 isSafeLink = false;
                 
@@ -75,7 +88,7 @@ function checkDataBase(url, index, tab, isHREF){
               }
             }
             else {
-              if(xmlURL == url || ( (p.hostname + p.pathname) == (q.hostname + q.pathname))){
+              if(xmlURL == url || ( (p.hostname + p.pathname) == (q.hostname + q.pathname)) || q.href.includes(p.href)){
                 //Identify the link as unsafe
                 isSafeLink = false;
                 
@@ -96,7 +109,6 @@ function checkDataBase(url, index, tab, isHREF){
           else{
             //send message back to the page with the url, index in the page, and status in the database 
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-              alert(url);
               chrome.tabs.sendMessage(tab, {greeting: "Final IMG Dest", data: url, index: index, safe: isSafeLink, protocol: q.protocol}, function(response) {
                 //
               });
@@ -111,27 +123,24 @@ function checkDataBase(url, index, tab, isHREF){
   //http.send(params);
 }
 
-//WORKS FOR TEXT
-function highlightLinks(linkList){
-	//var linkList = document.getElementsByTagName("a");
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if(request.greeting == 'ON'){
+      sendResponse({status: localStorage.getItem('on')});
+    }
+  });
 
-	for (i = 0; i < linkList.length; i++) {
-		item = linkList[i];
-		var url = item.getAttribute("href");
-				
-		//change item.text to be highlighted based on the THREAT level right now its just yellow
-		var innerHTML_ = item.innerHTML;
-		item.innerHTML = "<span style=\"background-color: #FFFF00\">" + innerHTML_ + "</span>";
-	}
-	
-	var imgList = document.getElementsByTagName("img");
-	for (i = 0; i < imgList.length; i++) {
-		item = imgList[i];
-		var badLinkReplacement = "https://s3.minijuegosgratis.com/media/video-collection-img/video-collection-trollface-thumb.jpg?v=_1510313260";
-		
-		//needs to compare against DB for whole and shortened link
-		//if (item.getAttribute("src") == BAD_LINK){
-			item.setAttribute("src", badLinkReplacement);
-		//}
-	}
-}
+chrome.browserAction.onClicked.addListener(
+  function(){
+    if(localStorage.getItem('on') == 'true'){
+      localStorage.setItem('on', 'false');
+      alert('I\'m so turned off right now.....');
+    }
+    else{
+      localStorage.setItem('on', 'true');
+      alert('I\'m so turned on (;');
+    }
+    
+    
+  }
+);

@@ -161,5 +161,10 @@ function processURLs(){
 
 
 window.onload = function() {
-    //processURLs();
+  //only run if extension is turned on
+  chrome.runtime.sendMessage({greeting: "ON"}, function(response) {
+     if(response.status == 'true'){
+       processURLs();
+     }
+  });
 };
