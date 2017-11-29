@@ -19,16 +19,6 @@ function processURLs(){
     
     
     if(request.greeting == 'Final URL Dest'){
-      ///Set settings to default
-      var checkDatabase = true
-      var checkSecure = true
-      var highlight = true
-      var checkForiegn = true
-      checkDatabase = function getDataBaseSettingsAsync(function(setting){
-        return setting;
-      });
-      alert(checkDatabase)
-      
       //to be used to assess threats
       var strTitle = '';
       var threat = 0;
@@ -178,21 +168,3 @@ window.onload = function() {
      }
   });
 };
-
-
-//The next four functions retrieve options and uses callback to store them.
-function getDataBaseSettingsAsync(callback){
-  chrome.storage.local.get('UseDatabase', function(response){ setting = response.UseDataBase; callback(setting);});
-}
-
-function getCheckSecureSettingsAsync(callback){
-  chrome.storage.local.get('CheckSecure', function(response){ setting = response.CheckSecure; callback(setting);});
-}
-
-function getHighlightSettingsAsync(callback){
-  chrome.storage.local.get('Highlight', function(response){ setting = response.Highlight; callback(setting);});
-}
-
-function getCheckForiegnCharactersSettingsAsync(callback){
-  chrome.storage.local.get('CheckForiegnCharacters', function(response){ setting = response.CheckForiegnCharacters; callback(setting);});
-}
