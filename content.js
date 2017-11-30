@@ -1,10 +1,14 @@
+//return hex color val based on threat
 function getColor(threat){
+  //yellow
   if(threat == 1){
     return 'FFFF00';
   }
+  //orange
   else if(threat == 2){
     return 'FFA533';
-  }  
+  }
+  //red
   else if(threat >= 3){
     return 'FF3333';
   }  
@@ -16,7 +20,6 @@ function processURLs(){
   //URL processor for listener to call upon received message
   function processURLThreatLevel(request, sender, sendResponse) {
     //We are getting a redirected URL
-    
     
     if(request.greeting == 'Final URL Dest'){
       //to be used to assess threats
@@ -98,6 +101,7 @@ function processURLs(){
       //highlight according to threat
       innerHTML_I = imgList[request.index].innerHTML;
       if(threatI > 0){
+        //replace image with trollFace
         var badLinkReplacement = "https://s3.minijuegosgratis.com/media/video-collection-img/video-collection-trollface-thumb.jpg?v=_1510313260";
 		    imgList[request.index].setAttribute('src', badLinkReplacement);
       }
@@ -153,15 +157,15 @@ function processURLs(){
   		}
 		}
     
-	  //send the url to main.js to be resolved
+	  //send the image url to main.js to be resolved
 	  chrome.runtime.sendMessage({greeting: 'Find Image Redirects', url: url, index: j});
   }
 }
 
 
-
+//when page is loaded
 window.onload = function() {
-  //only run if extension is turned on
+  //only run if extension is turned 'on'
   chrome.runtime.sendMessage({greeting: "ON"}, function(response) {
      if(response.status == 'true'){
        processURLs();
